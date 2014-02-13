@@ -1,0 +1,93 @@
+<?php
+
+namespace My\Logic;
+
+use Craft\Env\Auth;
+use Craft\Env\Flash;
+use :model;
+
+class AuthUser
+{
+
+    /**
+     * Attempt login
+     * @render views/auth.login
+     */
+    public function login()
+    {
+        // login submitted
+        if(post())
+        {
+            // get ids
+            $username = post('username');
+            $password = post('password');
+
+            // find user
+            $user = :class::one([
+                'username' => $username,
+                'password' => sha1($password)
+            ]);
+
+            // login
+            if($user) {
+                Auth::login($user->rank, $user);
+                Flash::set('login.success', 'Welcome, ' . $username . '.');
+                go('/');
+            }
+            else {
+                Flash::set('login.failed', 'Authentication has failed, please check your login.');
+            }
+        }
+    }
+
+
+    /**
+     * Logout current user
+     */
+    public function logout()
+    {
+        Auth::logout();
+        go('/');
+    }
+
+
+    /**
+     * Register new user
+     * @render views/auth.register
+     * @return array
+     */
+    public function register()
+    {
+        // create user
+        $user = new :class();
+
+        // register attempt
+        if($data = post()) {
+
+            // remove rank injection
+            unset($data['rank']);
+
+            // find user
+            $exists = :class::one([
+                'username' => post('username')
+            ]);
+
+            // create user
+            $user = hydrate($user, $data);
+
+            // check if user already exists
+            if($exists) {
+                Flash::set('register.failed', 'User already exists, please find another username.');
+            }
+            else {
+                User::save($user);
+                Flash::set('register.success', 'Welcome, ' . $user->username . '.');
+                go('/');
+            }
+
+        }
+
+        return ['user' => $user];
+    }
+
+} 

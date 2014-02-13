@@ -1,0 +1,25 @@
+<?php self::layout('views/layout') ?>
+
+<div class="form register-form">
+    <form action="/auth/register" method="post">
+
+        <h1>Register</h1>
+
+        <div class="line">
+            <input type="text" name="username" placeholder="username" value="<?= $user->username ?>" required  pattern=".{3}" />
+        </div>
+
+        <div class="line">
+            <input type="email" name="email" placeholder="email" value="<?= $user->email ?>" required />
+        </div>
+
+        <div class="line">
+            <input type="password" name="password" placeholder="password" value="<?= $user->password ?>" required pattern=".{5}"/>
+        </div>
+
+        <div class="line">
+            <button type="submit">Apply</button>
+        </div>
+
+    </form>
+</div>

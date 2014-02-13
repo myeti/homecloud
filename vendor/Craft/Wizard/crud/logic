@@ -1,0 +1,91 @@
+<?php
+
+namespace My\Logic;
+
+use :model;
+use Craft\Env\Flash;
+use Craft\Error\SomethingIsWrongException;
+
+class Crud:class
+{
+
+    /**
+     * Get all :alias
+     * @render views/:alias.all
+     * @return array
+     */
+    public function all()
+    {
+        $list = :class::find();
+        return ['list' => $list];
+    }
+
+
+    /**
+     * Read one :alias
+     * @param $id
+     * @render views/:alias.one
+     * @return array
+     * @throws SomethingIsWrongException
+     */
+    public function one($id)
+    {
+        // gey entity
+        $model = :class::one($id);
+
+        // does not exist
+        if(!$model) {
+            throw new SomethingIsWrongException(':class #' . $id .' not found.', 404);
+        }
+
+        return [':alias' => $model];
+    }
+
+
+    /**
+     * Create or edit :alias
+     * @param null $id
+     * @render views/:alias.form
+     * @return array
+     * @throws DispatchException
+     */
+    public function form($id = null)
+    {
+        // get entity
+        $model = $id ? :class::one($id) : new :class();
+
+        // does not exist
+        if($id and !$model) {
+            throw new DispatchException(404, ':class #' . $id .' not found.');
+        }
+
+        // form attempt
+        if($data = post()) {
+
+            // valid data here
+
+            // save
+            $model = hydrate($model, $data);
+            :class::save($model);
+
+            // success
+            Flash::set('form.success', $id ? ':alias updated.' : ':alias created.');
+            go('/:alias/', $model->id);
+
+        }
+
+        return ['model' => $model];
+    }
+
+
+    /**
+     * Delete :alias
+     * @param $id
+     */
+    public function delete($id)
+    {
+        Model::drop($id);
+        go('/:alias');
+    }
+
+}

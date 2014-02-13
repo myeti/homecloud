@@ -1,0 +1,87 @@
+body {
+    color: #444;
+    font-size: 13px;
+}
+.width {
+    width: 1000px;
+    margin: auto;
+}
+
+header {
+    padding: 20px;
+    background: #F5F5F5;
+    border-bottom: 1px solid #E9E9E9;
+}
+header #path {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 16px;
+}
+header #path .home {
+    color: inherit;
+    font-weight: bold;
+}
+header #actions {
+    display: inline-block;
+    float: right;
+    margin-top: -5px;
+}
+header #actions #search {
+    display: inline-block;
+    vertical-align: middle;
+    width: 200px;
+}
+header #actions button {
+    display: inline-block;
+    vertical-align: middle;
+}
+header #actions button .glyphicon {
+    vertical-align: middle;
+    margin-bottom: 4px;
+}
+
+footer {
+    padding: 14px 0;
+    color: #CCC;
+    border-top: 1px solid #EEE;
+    text-align: center;
+    font-size: 13px;
+}
+
+#main {
+    margin-top: 40px;
+    margin-bottom: 80px;
+}
+
+#dir-list th, #dir-list td {
+    padding: 12px 8px;
+}
+#dir-list thead tr th:first-child {
+    width: 600px;
+}
+#dir-list thead tr th:not(:first-child):not(:last-child) {
+    text-align: center;
+}
+#dir-list tbody tr td:not(:first-child):not(:last-child) {
+    color: #999;
+    text-align: center;
+}
+#dir-list .folder,
+#dir-list .file {
+    width: 22px;
+}
+#dir-list .folder {
+    color: #428bca;
+}
+#dir-list .file {
+    color: #BBB;
+}
+#dir-list a:not(:hover) {
+    color: inherit;
+}
+
+#dir-list .dropdown-menu a .glyphicon {
+    vertical-align: middle;
+    margin-bottom: 4px;
+    margin-right: 4px;
+}
