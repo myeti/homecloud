@@ -136,13 +136,15 @@
     <div class="alert alert-danger"><?= $message ?></div>
     <?php endif; ?>
 
-    <?php if(!$items->valid()): ?>
-    <div class="nothing">Empty folder</div>
-    <form action="<?= url(':' . $path, 'upload') ?>" method="post" enctype="multipart/form-data" class="dropzone" id="uploadZone">
-        <div class="fallback">
-            <input type="file" name="file" />
-        </div>
-    </form>
+    <?php if(!$items): ?>
+    <div class="nothing"><?= $query ? 'No results' : 'Empty folder' ?></div>
+        <?php if(!$query): ?>
+        <form action="<?= url(':' . $path, 'upload') ?>" method="post" enctype="multipart/form-data" class="dropzone" id="uploadZone">
+            <div class="fallback">
+                <input type="file" name="file" />
+            </div>
+        </form>
+        <?php endif; ?>
     <?php else: ?>
     <table class="table table-hover" id="dir-list">
         <thead>

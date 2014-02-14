@@ -32,7 +32,7 @@ class Cloud
 
         // init
         $query = null;
-        $iterator = $bread = [];
+        $items = $bread = [];
 
         // make path
         $target = $this->makePath($path);
@@ -41,42 +41,37 @@ class Cloud
         // not found
         if(strstr($real, HC_ROOT) === false or !is_dir($target)) {
             Flash::set('error', 'Folder "' . $path . '" not found.');
-            return [
-                'path'  => $path,
-                'bread' => $bread,
-                'items' => $iterator,
-                'query' => $query
-            ];
         }
-
-        // parse bread
-        if(!empty($path)) {
-            $url = '';
-            $segments = explode('/', $path);
-            foreach($segments as $segment) {
-                $url .= '/' . $segment;
-                $bread[$segment] = ltrim($url, '/');
-            }
-        }
-
-        // search under path
-        if($query = Mog::post('search')) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveRegexIterator(
-                    new \RecursiveDirectoryIterator($target, \FilesystemIterator::SKIP_DOTS),
-                    '#' . preg_quote($query) . '($|[^' . preg_quote(HC_SEP) . ']+)#i'
-                ), true
-            );
-        }
-        // explore current path
         else {
-            $iterator = new \FilesystemIterator($target, \FilesystemIterator::SKIP_DOTS);
+
+            // parse bread
+            if(!empty($path)) {
+                $url = '';
+                $segments = explode('/', $path);
+                foreach($segments as $segment) {
+                    $url .= '/' . $segment;
+                    $bread[$segment] = ltrim($url, '/');
+                }
+            }
+
+            // search under path
+            if($query = Mog::post('search')) {
+                $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($target, \FilesystemIterator::SKIP_DOTS));
+                $iterator = new \RegexIterator($files, '#' . preg_quote($query) . '($|[^' . HC_SEP . ']+)#i');
+                $items = iterator_to_array($iterator, true);
+            }
+            // explore current path
+            else {
+                $iterator = new \FilesystemIterator($target, \FilesystemIterator::SKIP_DOTS);
+                $items = iterator_to_array($iterator, true);
+            }
+
         }
 
         return [
             'path'  => $path,
             'bread' => $bread,
-            'items' => $iterator,
+            'items' => $items,
             'query' => $query
         ];
     }
@@ -233,7 +228,7 @@ class Cloud
      */
     protected function makePath($path = null, $name = null)
     {
-        $target = HC_SEP . HC_ROOT;
+        $target = HC_SEP . ltrim(HC_ROOT, HC_SEP);
 
         if($path) { $target .= rtrim($path, HC_SEP) . HC_SEP; }
         if($name) { $target .= ltrim($name, HC_SEP); }
