@@ -17,7 +17,7 @@ class User
 
     /**
      * Attempt login
-     * @render views/auth.login
+     * @render views/user.login
      * @return mixed
      */
     public function login()
@@ -27,12 +27,12 @@ class User
         {
             // extract env
             $username = post('username');
-            $password = post('username');
+            $password = post('password');
 
             // login ok
             if($username == HC_USERNAME and sha1($password) == HC_PASSWORD) {
                 Auth::login(1, $username);
-                go('/explore');
+                go('/');
             }
             else {
                 Flash::set('login.failed', 'Wrong user.');

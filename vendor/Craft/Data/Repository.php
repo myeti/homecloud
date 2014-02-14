@@ -24,7 +24,7 @@ class Repository extends \ArrayObject implements Provider
     public function __construct(array $input = [], $separator = '.')
     {
         $this->separator = $separator;
-        parent::__construct($input);
+        parent::__construct($input, \ArrayObject::STD_PROP_LIST);
     }
 
 

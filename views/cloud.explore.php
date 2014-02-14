@@ -1,29 +1,94 @@
+<?php self::layout('views/_layout') ?>
+<?= self::css('public/css/content', 'public/css/dropzone'); ?>
+<?= self::js('public/js/dropzone', 'public/js/main'); ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HomeCloud</title>
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
-    <?= self::css('public/css/content'); ?>
-    <?= self::js('public/js/jquery-2.1.0.min'); ?>
-    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-</head>
-<body>
+<div class="modal fade" id="modalCreate">
+    <div class="modal-dialog">
+
+        <form action="<?= url(':' . $path, 'create') ?>" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Create folder</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" name="name" placeholder="Folder name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</div>
 
 <div class="modal fade" id="modalRename">
     <div class="modal-dialog">
 
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Rename</h4>
+        <form action="<?= url(':' . $path, 'rename') ?>" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Rename</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="name" value="">
+                    <input type="text" class="form-control" name="to" placeholder="New name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
             </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalDelete">
+    <div class="modal-dialog">
+
+        <form action="<?= url(':' . $path, 'delete') ?>" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="name" value="">
+                    <p>All inner items will be deleted as well.</p>
+                    <p>Are you really sure to delete <strong class="str_name"></strong> ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                    <button type="submit" class="btn btn-primary">Yes</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalUpload">
+    <div class="modal-dialog">
+
+        <div class="modal-content">
             <div class="modal-body">
-                <input type="text" class="form-control">
+
+                <form action="<?= url(':' . $path, 'upload') ?>" method="post" enctype="multipart/form-data" class="dropzone" id="uploadZone">
+                    <div class="fallback">
+                        <input type="file" name="file" />
+                    </div>
+                </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save</button>
             </div>
         </div>
 
@@ -37,19 +102,21 @@
         <div id="path">
             <a href="<?= url() ?>" class="home">HomeCloud</a> /
             <?php foreach($bread as $crumb => $url): ?>
-            <a href="<?= url($url) ?>"><?= $crumb ?></a> /
+            <a href="<?= url(':' . $url) ?>"><?= $crumb ?></a> /
             <?php endforeach; ?>
         </div>
 
         <div id="actions">
 
-            <input type="text" class="form-control" id="search" placeholder="Global search">
+            <form action="<?= url(':' . $path) ?>" method="post">
+                <input type="text" class="form-control" id="search" name="search" value="<?= $query ?>" placeholder="Find file or folder">
+            </form>
 
-            <button type="button" class="btn btn-default">
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modalCreate">
                 <span class="glyphicon glyphicon-plus-sign"></span> Folder
             </button>
 
-            <button type="button" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalUpload">
                 <span class="glyphicon glyphicon-circle-arrow-up"></span> Upload
             </button>
 
@@ -61,6 +128,22 @@
 
 <div id="main" class="width">
 
+    <?php if($message = flash('success')): ?>
+        <div class="alert alert-success"><?= $message ?></div>
+    <?php endif; ?>
+
+    <?php if($message = flash('error')): ?>
+    <div class="alert alert-danger"><?= $message ?></div>
+    <?php endif; ?>
+
+    <?php if(!$items->valid()): ?>
+    <div class="nothing">Empty folder</div>
+    <form action="<?= url(':' . $path, 'upload') ?>" method="post" enctype="multipart/form-data" class="dropzone" id="uploadZone">
+        <div class="fallback">
+            <input type="file" name="file" />
+        </div>
+    </form>
+    <?php else: ?>
     <table class="table table-hover" id="dir-list">
         <thead>
         <tr>
@@ -77,9 +160,10 @@
                 <td>
                     <?php if($item->isDir()): ?>
                     <span class="glyphicon glyphicon-folder-open folder"></span>
-                    <a href="<?= url($path, $item->getFilename()) ?>"><?= $item->getFilename() ?></a>
+                    <a href="<?= url(':' . str_replace(HC_ROOT, null, $item->getPathname())) ?>"><?= $item->getFilename() ?></a>
                     <?php else: ?>
-                    <span class="glyphicon glyphicon-file file"></span> <?= $item->getFilename() ?>
+                    <span class="glyphicon glyphicon-file file"></span>
+                    <a href="<?= self::asset(HC_DIR . str_replace(HC_ROOT, null, $item->getPathname())) ?>" target="_blank"><?= $item->getFilename() ?></a>
                     <?php endif; ?>
                 </td>
                 <td><?= number_format($item->getSize() / 1024, 2) ?> ko</td>
@@ -92,18 +176,13 @@
                         </a>
                         <ul class="dropdown-menu" role="menu">
                             <li>
-                                <a href="#" data-toggle="modal" data-target="#modalRename">
+                                <a href="#" class="rename" data-toggle="modal" data-target="#modalRename" data-name="<?= $item->getFilename() ?>">
                                     <span class="glyphicon glyphicon-pencil"></span> Rename
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" data-toggle="modal" data-target="#modalMove">
-                                    <span class="glyphicon glyphicon-share-alt"></span> Move
                                 </a>
                             </li>
                             <li class="divider"></li>
                             <li>
-                                <a href="#" data-toggle="modal" data-target="#modalDelete">
+                                <a href="#" class="delete" data-toggle="modal" data-target="#modalDelete" data-name="<?= $item->getFilename() ?>">
                                     <span class="glyphicon glyphicon-remove"></span> Delete
                                 </a>
                             </li>
@@ -114,10 +193,8 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    <?php endif; ?>
 
 </div>
 
 <footer class="width">HomeCloud - Personal Cloud Manager - &copy 2014 Aymeric Assier</footer>
-
-</body>
-</html>

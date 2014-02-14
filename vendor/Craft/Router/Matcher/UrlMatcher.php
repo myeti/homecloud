@@ -39,8 +39,8 @@ class UrlMatcher extends RegexMatcher
 
         // compile pattern
         $pattern = str_replace('/', '\/', $pattern);
-        $pattern = preg_replace('#\:(\w+)#', '(?P<arg__$1>[^\/]+)', $pattern);
-        $pattern = preg_replace('#\+(\w+)#', '(?P<env__$1>[^\/]+)', $pattern);
+        $pattern = preg_replace('#\:(\w+)#', '(?P<arg__$1>(.+))', $pattern);
+        $pattern = preg_replace('#\+(\w+)#', '(?P<env__$1>(.+))', $pattern);
         $pattern = '#^' . $pattern . '$#';
 
         return $pattern;

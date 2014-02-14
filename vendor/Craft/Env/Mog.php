@@ -102,7 +102,7 @@ abstract class Mog
     public static function get($key = null, $fallback = null)
     {
         // fallback
-        if($key and !isset($GET[$key])) {
+        if($key and !isset($_GET[$key])) {
             return $fallback;
         }
 
@@ -119,7 +119,7 @@ abstract class Mog
     public static function post($key = null, $fallback = null)
     {
         // fallback
-        if($key and !isset($POST[$key])) {
+        if($key and !isset($_POST[$key])) {
             return $fallback;
         }
 
@@ -136,7 +136,7 @@ abstract class Mog
     public static function file($key = null, $fallback = null)
     {
         // fallback
-        if($key and !isset($FILES[$key])) {
+        if($key and !isset($_FILES[$key])) {
             return $fallback;
         }
 

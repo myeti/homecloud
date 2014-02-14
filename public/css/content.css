@@ -26,6 +26,9 @@ header #actions {
     float: right;
     margin-top: -5px;
 }
+header #actions form {
+    display: inline;
+}
 header #actions #search {
     display: inline-block;
     vertical-align: middle;
@@ -51,6 +54,16 @@ footer {
 #main {
     margin-top: 40px;
     margin-bottom: 80px;
+}
+
+#main .alert {
+    cursor: pointer;
+}
+#main .nothing {
+    font-size: 32px;
+    color: #CCC;
+    padding: 40px;
+    text-align: center;
 }
 
 #dir-list th, #dir-list td {

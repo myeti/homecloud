@@ -1,0 +1,16 @@
+body {
+    background: #F5F5F5;
+}
+
+#login {
+    width: 300px;
+    margin: auto;
+    margin-top: 400px;
+}
+
+#login h1 {
+    text-align: center;
+}
+#login .panel-body {
+    padding: 30px;
+}

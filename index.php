@@ -2,17 +2,16 @@
 
 require 'vendor/autoload.php';
 
-\Craft\Env\Auth::login(1);
-
 
 /**
  * Config
  */
 
 define('HC_SEP', DIRECTORY_SEPARATOR);
-define('HC_ROOT', __DIR__ . HC_SEP . 'storage' . HC_SEP);
+define('HC_DIR', 'storage' . HC_SEP);
+define('HC_ROOT', __DIR__ . HC_SEP . HC_DIR);
 define('HC_USERNAME', 'Babor');
-define('HC_PASSWORD', '4a87f9df5abef2e9ba38f603f37b3fad52787fa4');
+define('HC_PASSWORD', '0b4c85f91b79d02f294106f5b1d1fb17511a0ca7');
 
 if(!file_exists(HC_ROOT) and !mkdir(HC_ROOT)) {
     die('Cannot create "' . HC_ROOT . '" folder, please update chmod.');
@@ -24,11 +23,23 @@ if(!file_exists(HC_ROOT) and !mkdir(HC_ROOT)) {
  */
 $app = new Craft\Kernel\App([
 
-    '/'         => 'My\Logic\Cloud::index',
-    '/:path'    => 'My\Logic\Cloud::index',
+    '/'                 => 'My\Logic\Cloud::explore',
 
-    '/_404'     => 'My\Logic\Error::lost',
-    '/_403'     => 'My\Logic\Error::login'
+    '/::path/create'    => 'My\Logic\Cloud::create',
+    '/::path/rename'    => 'My\Logic\Cloud::rename',
+    '/::path/delete'    => 'My\Logic\Cloud::delete',
+    '/::path/upload'    => 'My\Logic\Cloud::upload',
+
+    '/:/create'         => 'My\Logic\Cloud::create',
+    '/:/rename'         => 'My\Logic\Cloud::rename',
+    '/:/delete'         => 'My\Logic\Cloud::delete',
+    '/:/upload'         => 'My\Logic\Cloud::upload',
+
+    '/::path'           => 'My\Logic\Cloud::explore',
+    '/:'                => 'My\Logic\Cloud::explore',
+
+    '/lost'             => 'My\Logic\Error::lost',
+    '/login'            => 'My\Logic\User::login'
 
 ]);
 
@@ -37,11 +48,11 @@ $app = new Craft\Kernel\App([
  * Error events
  */
 $app->on(404, function() use($app) {
-    $app->plug('/_404');
+    go('/lost');
 });
 
 $app->on(403, function() use($app) {
-    $app->plug('/_403');
+    go('/login');
 });
 
 

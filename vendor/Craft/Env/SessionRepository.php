@@ -17,6 +17,9 @@ class SessionRepository extends Repository
     /** @var bool */
     protected $serialize = false;
 
+    /** @var string */
+    protected $base;
+
     /**
      * Setup session in repository
      * @param string $base
@@ -29,6 +32,7 @@ class SessionRepository extends Repository
         }
 
         $this->serialize = $serialize;
+        $this->base = $base;
 
         parent::__construct($_SESSION[$base]);
     }
@@ -62,6 +66,15 @@ class SessionRepository extends Repository
         return $this->serialize
             ? parent::set($key, serialize($value))
             : parent::set($key, $value);
+    }
+
+
+    /**
+     * Save
+     */
+    public function __destruct()
+    {
+        $_SESSION[$this->base] = $this->getArrayCopy();
     }
 
 }

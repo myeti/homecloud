@@ -5,77 +5,68 @@ namespace My\Logic;
 use Craft\Env\Flash;
 use Craft\Env\Mog;
 
+
+/**
+ * Class Cloud
+ * @auth 1
+ */
 class Cloud
 {
 
-
-    /**
-     * Route cloud action
-     * @auth 1
-     * @render views/cloud.explore
-     * @param null $path
-     * @return array
-     */
-    public function index($path = null)
-    {
-        // route action
-        if($action = Mog::get('action') and $name = Mog::get('name')) {
-
-            // create
-            if($action == 'create') {
-                $this->create($path, $name);
-            }
-            // rename
-            elseif($action == 'rename' and $to = Mog::get('to')) {
-                $this->rename($path, $name, $to);
-            }
-            // move
-            elseif($action == 'move' and $to = Mog::get('to')) {
-                $this->move($path, $name, $to);
-            }
-            // delete
-            elseif($action == 'delete') {
-                $this->delete($path, $name);
-            }
-            // preview
-            elseif($action == 'preview') {
-                $this->preview($path, $name);
-            }
-
-            // clear params in url
-            go($path);
-
-        }
-
-        return $this->explore($path);
-    }
-
-
     /**
      * Explore folder
+     * @render views/cloud.explore
      * @param string $path
      * @return array
      */
-    protected function explore($path)
+    public function explore($path = null)
     {
+        // clean
+        if($path == '/') {
+            $path = null;
+        }
+        if($path[0] == '/') {
+            $path = ltrim($path, '/');
+            go(':' . $path);
+        }
+
+        // init
+        $query = null;
+        $iterator = $bread = [];
+
         // make path
-        $target = HC_ROOT . rtrim($path, HC_SEP);
+        $target = $this->makePath($path);
+        $real = rtrim(realpath($target), HC_SEP) . HC_SEP;
+
+        // not found
+        if(strstr($real, HC_ROOT) === false or !is_dir($target)) {
+            Flash::set('error', 'Folder "' . $path . '" not found.');
+            return [
+                'path'  => $path,
+                'bread' => $bread,
+                'items' => $iterator,
+                'query' => $query
+            ];
+        }
 
         // parse bread
-        $bread = [];
         if(!empty($path)) {
             $url = '';
             $segments = explode('/', $path);
             foreach($segments as $segment) {
                 $url .= '/' . $segment;
-                $bread[$segment] = $url;
+                $bread[$segment] = ltrim($url, '/');
             }
         }
 
         // search under path
-        if($query = Mog::get('search')) {
-            $directory = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($target));
-            $iterator = new \RegexIterator($directory, '#.*(' . preg_quote($query) . ').*#Di');
+        if($query = Mog::post('search')) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveRegexIterator(
+                    new \RecursiveDirectoryIterator($target, \FilesystemIterator::SKIP_DOTS),
+                    '#' . preg_quote($query) . '($|[^' . preg_quote(HC_SEP) . ']+)#i'
+                ), true
+            );
         }
         // explore current path
         else {
@@ -85,7 +76,8 @@ class Cloud
         return [
             'path'  => $path,
             'bread' => $bread,
-            'items' => $iterator
+            'items' => $iterator,
+            'query' => $query
         ];
     }
 
@@ -93,120 +85,160 @@ class Cloud
     /**
      * Create folder
      * @param $path
-     * @param $name
      */
-    protected function create($path, $name)
+    public function create($path = null)
     {
-        // make path
-        $target = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . ltrim($name, HC_SEP);
+        // get data
+        if($name = Mog::post('name')) {
 
-        // already exists
-        if(file_exists($target)) {
-            Flash::set('error', '"' . $name . '" already exists.');
+            // make path
+            $target = $this->makePath($path, $name);
+
+            // already exists
+            if(file_exists($target)) {
+                Flash::set('error', '"' . $name . '" already exists.');
+            }
+            // unknown error
+            elseif(!mkdir($target, 0777, true)) {
+                Flash::set('error', 'Something is wrong, cannot create "' . $name . '".');
+            }
+            // success
+            else {
+                Flash::set('success', '"' . $name . '" created !');
+            }
+
         }
-        // unknown error
-        elseif(!mkdir($target)) {
-            Flash::set('error', 'Something is wrong, cannot create "' . $name . '".');
-        }
-        // success
-        else {
-            Flash::set('success', '"' . $name . '" created !');
-        }
+
+        go(':' . $path);
     }
 
 
     /**
      * Rename folder or file
      * @param $path
-     * @param $name
-     * @param $to
      */
-    protected function rename($path, $name, $to)
+    public function rename($path = null)
     {
-        // make path
-        $source = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . ltrim($name, HC_SEP);
-        $target = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . ltrim($to, HC_SEP);
+        // get data
+        if($name = Mog::post('name') and $to = Mog::post('to')) {
 
-        // already exists
-        if(file_exists($target)) {
-            Flash::set('error', '"' . $to . '" already exists.');
-        }
-        elseif(!rename($source, $target)) {
-            Flash::set('error', 'Something is wrong, cannot rename "' . $name . '".');
-        }
-        else {
-            Flash::set('success', '"' . $name . '" renamed to "' . $to . '" !');
-        }
-    }
+            // make path
+            $source = $this->makePath($path, $name);
+            $target = $this->makePath($path, $to);
 
+            // already exists
+            if(file_exists($target)) {
+                Flash::set('error', '"' . $to . '" already exists.');
+            }
+            elseif(!rename($source, $target)) {
+                Flash::set('error', 'Something is wrong, cannot rename "' . $name . '".');
+            }
+            else {
+                Flash::set('success', '"' . $name . '" renamed to "' . $to . '" !');
+            }
 
-    /**
-     * Move folder or file
-     * @param $path
-     * @param $name
-     * @param $to
-     */
-    protected function move($path, $name, $to)
-    {
-        // make path
-        $source = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . ltrim($name, HC_SEP);
-        $target = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . trim($to, HC_SEP) . HC_SEP . ltrim($to, HC_SEP);
+        }
 
-        // already exists
-        if(file_exists($target)) {
-            Flash::set('error', '"' . $to . '" already exists.');
-        }
-        // unknown error
-        elseif(!rename($source, $target)) {
-            Flash::set('error', 'Something is wrong, cannot move "' . $name . '".');
-        }
-        // success
-        else {
-            Flash::set('success', '"' . $name . '" moved to "' . $to . '" !');
-        }
+        go(':' . $path);
     }
 
 
     /**
      * Delete folder or file
      * @param $path
-     * @param $name
      */
-    protected function delete($path, $name)
+    public function delete($path = null)
     {
-        // make path
-        $source = HC_ROOT . rtrim($path, HC_SEP) . HC_SEP . ltrim($name, HC_SEP);
+        // get data
+        if($name = Mog::post('name')) {
 
-        // unknown error
-        if((is_dir($source) and !rmdir($source)) or !unlink($source)) {
-            Flash::set('error', 'Something is wrong, cannot delete "' . $name . '".');
+            // make path
+            $source = $this->makePath($path, $name);
+
+            // delete
+            $done = $this->wipe($source);
+
+            // unknown error
+            if(!$done) {
+                Flash::set('error', 'Something is wrong, cannot delete "' . $name . '".');
+            }
+            // success
+            else {
+                Flash::set('success', '"' . $name . '" deleted !');
+            }
+
         }
-        // success
-        else {
-            Flash::set('success', '"' . $name . '" deleted !');
-        }
+
+        go(':' . $path);
     }
 
 
     /**
-     * Preview file
+     * Recursive delete
      * @param $path
-     * @param $name
+     * @return bool
      */
-    protected function preview($path, $name)
+    protected function wipe($path)
     {
-        // not implemented
+        $current = ($path instanceof \SplFileInfo) ? $path : new \SplFileInfo($path);
+        if($current->isDir()) {
+            $valid = true;
+            $iterator = new \FilesystemIterator($current . HC_SEP, \FilesystemIterator::SKIP_DOTS);
+            foreach($iterator as $item) {
+                $valid &= $this->wipe($item);
+            }
+            $valid &= rmdir($path);
+            return $valid;
+        }
+
+        return unlink($path);
     }
 
 
     /**
-     * Download file
+     * Upload file to path
      * @param $path
-     * @param $name
      */
-    protected function download($path, $name)
+    public function upload($path = null)
     {
-        // not implemented
+        // get data
+        if($file = Mog::file('file')) {
+
+            // make path
+            $target = $this->makePath($path, $file->name);
+
+            // already exists
+            if(file_exists($target)) {
+                Flash::set('error', '"' . $file->name . '" already exists.');
+            }
+            // save
+            elseif(!move_uploaded_file($file->tmp_name, $target)) {
+                Flash::set('error', 'Something is wrong, cannot upload "' . $file->name . '".');
+            }
+            else {
+                Flash::set('success', '"' . $file->name . '" uploaded !');
+            }
+
+        }
+
+        go(':' . $path);
     }
 
-} 
+
+    /**
+     * Build path
+     * @param null $path
+     * @param null $name
+     * @return string
+     */
+    protected function makePath($path = null, $name = null)
+    {
+        $target = HC_SEP . HC_ROOT;
+
+        if($path) { $target .= rtrim($path, HC_SEP) . HC_SEP; }
+        if($name) { $target .= ltrim($name, HC_SEP); }
+
+        return $target;
+    }
+
+}
