@@ -10,8 +10,8 @@ require 'vendor/autoload.php';
 define('HC_SEP', DIRECTORY_SEPARATOR);
 define('HC_DIR', 'storage' . HC_SEP);
 define('HC_ROOT', __DIR__ . HC_SEP . HC_DIR);
-define('HC_USERNAME', 'Babor');
-define('HC_PASSWORD', '0b4c85f91b79d02f294106f5b1d1fb17511a0ca7');
+define('HC_USERNAME', 'Lapeluche');
+define('HC_PASSWORD', '634f0628e15e156c1e2bb8149b0e5ca92bd8fc68');
 
 if(!file_exists(HC_ROOT) and !mkdir(HC_ROOT)) {
     die('Cannot create "' . HC_ROOT . '" folder, please update chmod.');

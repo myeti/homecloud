@@ -14,14 +14,36 @@ class MySQL extends \PDO
 
     /**
      * Init for mysql
-     * @param $host
-     * @param $username
-     * @param $password
-     * @param $dbname
+     * @param string $host
+     * @param string $username
+     * @param string $password
+     * @param string $dbname
      */
-    public function __construct($host, $username, $password, $dbname)
+    public function __construct($host, $username, $password, $dbname = null)
     {
-        parent::__construct('mysql:host=' . $host . ';dbname=' . $dbname, $username, $password);
+        $connector = 'mysql:host=' . $host;
+        if($dbname) {
+            $connector .= ';dbname=' . $dbname;
+        }
+
+        parent::__construct($connector, $username, $password);
+    }
+
+
+    /**
+     * Open or create database
+     * @param $dbname
+     * @param bool $create
+     * @return \PDOStatement
+     */
+    public function open($dbname, $create = true)
+    {
+        if($create) {
+            $sql = 'CREATE DATABASE IF NOT EXISTS `:dbname`;';
+            $this->prepare($sql)->execute([':dbname' => $dbname]);
+        }
+
+        return $this->prepare('USE `:dbname`;')->execute([':dbname' => $dbname]);
     }
 
 } 

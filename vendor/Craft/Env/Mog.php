@@ -78,7 +78,7 @@ abstract class Mog
      */
     public static function base()
     {
-        return dirname(static::server('SCRIPT_NAME')) . '/';
+        return rtrim(dirname(static::server('SCRIPT_NAME')), '/') . '/';
     }
 
 
