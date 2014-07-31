@@ -244,36 +244,6 @@ class Cloud
 
 
     /**
-     * Cron : retrieve files from mailbox
-     */
-    public function import()
-    {
-        $valid = true;
-
-        // use imap
-        if(HC_IMAP) {
-
-            // open server
-            $server = new MailServer(HC_IMAP_HOST, HC_IMAP_USERNAME, HC_IMAP_PASSWORD);
-            $mailbox = $server->in('INBOX');
-
-            // check all mails
-            foreach($mailbox->mails('UNSEEN') as $mail) {
-
-                // download attachments
-                foreach($mail->attachments as $attachment) {
-                    $valid &= $attachment->download(HC_ROOT . HC_IMAP_DIR);
-                }
-
-            }
-
-        }
-
-        return $valid;
-    }
-
-
-    /**
      * Build path
      * @param string $path
      * @param string $name
