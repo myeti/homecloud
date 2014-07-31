@@ -9,7 +9,7 @@
  */
 namespace Craft\Reflect;
 
-class Injector
+class Injector implements InjectorInterface
 {
 
     /** @var array */

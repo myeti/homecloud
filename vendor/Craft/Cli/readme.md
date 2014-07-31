@@ -1,3 +1,0 @@
-# Craft\Cli
-
-Coming soon...

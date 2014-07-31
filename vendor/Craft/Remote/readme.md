@@ -1,3 +1,0 @@
-# Craft\Remote
-
-Coming soon...

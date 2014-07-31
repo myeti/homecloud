@@ -1,3 +1,0 @@
-# Craft\Kernel
-
-Coming soon...

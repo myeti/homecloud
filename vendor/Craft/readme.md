@@ -7,7 +7,7 @@ In your `index.php`, create the app object :
 ```php
 require 'vendor/autoload.php';
 
-$app = new Craft\App([
+$app = new Craft\Web\App([
     '/' => 'My\Logic\Front::hello'
 ]);
 
@@ -20,7 +20,7 @@ It needs the routes you want to use in order to bind an *url* to an *action* (fu
 You can specify the args you want to catch in the url by prefixing the segment with `:` :
 
 ```php
-$app = new Craft\App([
+$app = new Craft\Web\App([
     '/some/:arg' => 'My\Logic\Front::hello'
 ]);
 ```
@@ -32,12 +32,12 @@ The action `My\Logic\Front::hello` will receive `:arg` as the first argument of 
 You can catch and use args that are not meant to be used in the action by prefixing with `+`, for exemple : the current lang.
 
 ```php
-$app = new Craft\App([
+$app = new Craft\Web\App([
     '/+lang/some/:arg' => 'My\Logic\Front::hello'
 ]);
 ```
 
-You can now get the lang value with `Craft\Env\Config::get('lang');`.
+You can now get the lang value with `Craft\Box\Env::get('lang');`.
 
 
 ## Action

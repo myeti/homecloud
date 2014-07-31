@@ -1,3 +1,0 @@
-# Craft\Text
-
-Coming soon...

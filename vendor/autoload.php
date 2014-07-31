@@ -1,43 +1,33 @@
 <?php
 
 /**
- * Setup autoloader
+ * Setup AutoLoader
  */
 
+require __DIR__ . '/Craft/Reflect/ClassLoaderInterface.php';
 require __DIR__ . '/Craft/Reflect/ClassLoader.php';
+require __DIR__ . '/Forge/Loader.php';
 
-$loader = new Craft\Reflect\ClassLoader();
-$loader->register();
-$loader->vendors([
-    'Craft' => __DIR__ . '/Craft',
-    'Psr'   => __DIR__ . '/Psr',
-    'My'    => dirname($_SERVER['SCRIPT_FILENAME'])
-]);
+Forge\Loader::set(
+    new Craft\Reflect\ClassLoader(true)
+);
 
-
-/**
- * Setup dev tools
- */
-
-$logger = new Craft\Debug\Logger();
-$tracker = new Craft\Debug\Tracker();
-$tracker->start('craft.app');
+Forge\Loader::add('Craft'   , __DIR__ . '/Craft');
+Forge\Loader::add('Forge'   , __DIR__ . '/Forge');
+Forge\Loader::add('Psr'     , __DIR__ . '/Psr');
+Forge\Loader::add('My'      , dirname($_SERVER['SCRIPT_FILENAME']));
 
 
 /**
- * Setup session
+ * Start logger
  */
 
-ini_set('session.use_trans_sid', 0);
-ini_set('session.use_only_cookies', 1);
-ini_set("session.cookie_lifetime", 604800);
-ini_set("session.gc_maxlifetime", 604800);
-session_set_cookie_params(604800);
-session_start();
+Forge\Logger::info('Hello :)');
 
 
 /**
  * Load helpers
  */
 
-require __DIR__ . '/helpers.php';
+require __DIR__ . '/Craft/helpers.php';
+require __DIR__ . '/Forge/helpers.php';

@@ -9,20 +9,21 @@
  */
 namespace Craft\Storage;
 
-use craft\error\FileNotFoundException;
+use Craft\Error\FileNotFound;
 
 abstract class File
 {
 
 	/**
 	 * Check if a file exists
-	 * @param  string $filename
+	 * @param  string $path
 	 * @return bool
 	 */
-	public static function exists($filename)
+	public static function has($path)
 	{
-		return file_exists($filename);
+		return static::local()->has($path);
 	}
+
 
 	/**
 	 * Read file content
@@ -31,8 +32,9 @@ abstract class File
 	 */
 	public static function read($filename)
 	{
-		return file_get_contents($filename);
+		return static::local()->read($filename);
 	}
+
 
 	/**
 	 * Write content in file
@@ -42,45 +44,55 @@ abstract class File
 	 */
 	public static function write($filename, $content)
 	{
-		return file_put_contents($filename, $content);
+        return static::local()->write($filename, $content);
 	}
 
-    /**
-     * Move file
-     * @param string $filename
-     * @param string $to
-     * @return bool
-     */
-	public static function move($filename, $to)
-	{
-		// clean to
-		if(is_dir($to)) {
-			$to .= DIRECTORY_SEPARATOR . basename($filename);
-		}
-
-		return rename($filename, $to);
-	}
 
     /**
      * Rename file
-     * @param string $filename
-     * @param string $to
+     * @param string $old
+     * @param string $new
      * @return bool
      */
-	public static function rename($filename, $to)
+    public static function rename($old, $new)
+    {
+        return static::local()->rename($old, $new);
+    }
+
+
+    /**
+     * Move file
+     * @param string $old
+     * @param string $new
+     * @return bool
+     */
+	public static function move($old, $new)
 	{
-		return rename($filename, $to);
+		return static::local()->rename($old, $new);
 	}
+
 
 	/**
 	 * Delete file
-	 * @param  string $filename
+	 * @param  string $path
 	 * @return bool
 	 */
-	public static function delete($filename)
+	public static function delete($path)
 	{
-		return unlink($filename);
+        return static::local()->delete($path);
 	}
+
+
+    /**
+     * Get file extension
+     * @param  string $filename
+     * @return string
+     */
+    public static function name($filename)
+    {
+        return pathinfo($filename, PATHINFO_FILENAME);
+    }
+
 
 	/**
 	 * Get file extension
@@ -92,6 +104,7 @@ abstract class File
 		return pathinfo($filename, PATHINFO_EXTENSION);
 	}
 
+
 	/**
 	 * Get file size
 	 * @param  string $filename
@@ -101,6 +114,7 @@ abstract class File
 	{
 		return filesize($filename);
 	}
+
 
     /**
      * Upload file
@@ -112,28 +126,29 @@ abstract class File
 	public static function upload($name, $to)
 	{
 		// error
-		if(!isset($FILES[$name])) {
+		if(!isset($_FILES[$name])) {
 			throw new \InvalidArgumentException('No uploaded file named "' . $name . '".');
 		}
 
 		// resolve path
 		if(is_dir($to)) {
-			$to .= DIRECTORY_SEPARATOR . $FILES[$name]['name'];
+			$to .= DIRECTORY_SEPARATOR . $_FILES[$name]['name'];
 		}
 
-		return move_uploaded_file($FILES[$name]['tmp_name'], $to);
+		return move_uploaded_file($_FILES[$name]['tmp_name'], $to);
 	}
+
 
     /**
      * Force download file
      * @param  string $filename
-     * @throws FileNotFoundException
+     * @throws FileNotFound
      */
 	public static function download($filename)
 	{
 		// error
 		if(!file_exists($filename)) {
-			throw new FileNotFoundException('File "' . $filename . '" not found.');
+			throw new FileNotFound('File "' . $filename . '" not found.');
 		}
 
 		// init & exit
@@ -143,5 +158,20 @@ abstract class File
 		readfile($filename);
 		exit;
 	}
+
+
+    /**
+     * Get local instance
+     * @return Adapter
+     */
+    protected static function local()
+    {
+        static $local;
+        if(!$local) {
+            $local = new Local(null);
+        }
+
+        return $local;
+    }
 
 }

@@ -1,3 +1,0 @@
-# Craft\Data
-
-Coming soon...

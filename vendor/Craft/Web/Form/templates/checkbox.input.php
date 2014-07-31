@@ -1,0 +1,1 @@
+<input type="checkbox" name="<?= $field->name ?>" id="<?= $field->id ?>" <?= $field->value ? 'checked' : null; ?>/>

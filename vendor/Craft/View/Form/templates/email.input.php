@@ -1,1 +1,0 @@
-<input type="email" id="<?= $field->id ?>" name="<?= $field->name() ?>" placeholder="<?= $field->placeholder ?>" value="<?= $field->value ?>" />

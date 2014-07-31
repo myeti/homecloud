@@ -1,3 +1,0 @@
-# Craft\Pattern
-
-Coming soon...

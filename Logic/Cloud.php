@@ -2,8 +2,9 @@
 
 namespace My\Logic;
 
-use Craft\Env\Flash;
-use Craft\Env\Mog;
+use Craft\Remote\MailServer;
+use Forge\Flash;
+use Forge\Mog;
 
 
 /**
@@ -16,18 +17,26 @@ class Cloud
     /**
      * Explore folder
      * @render views/cloud.explore
-     * @param string $path
+     * @param string $input
      * @return array
      */
-    public function explore($path = null)
+    public function explore($input = null)
     {
+        // #bug : get Request sometimes instead of string
+        $path = is_object($input) ? '' : (string)$input;
+
         // clean
         if($path == '/') {
             $path = null;
         }
-        if($path[0] == '/') {
+        if(isset($path[0]) and $path[0] == '/') {
             $path = ltrim($path, '/');
             go(':' . $path);
+        }
+
+        // decode
+        if($path) {
+            $path = rawurldecode($path);
         }
 
         // init
@@ -68,6 +77,8 @@ class Cloud
 
         }
 
+        ksort($items);
+
         return [
             'path'  => $path,
             'bread' => $bread,
@@ -79,10 +90,13 @@ class Cloud
 
     /**
      * Create folder
-     * @param $path
+     * @param string $input
      */
-    public function create($path = null)
+    public function create($input = null)
     {
+        // #bug : get Request sometimes instead of string
+        $path = is_object($input) ? '' : (string)$input;
+
         // get data
         if($name = Mog::post('name')) {
 
@@ -110,10 +124,13 @@ class Cloud
 
     /**
      * Rename folder or file
-     * @param $path
+     * @param string $input
      */
-    public function rename($path = null)
+    public function rename($input = null)
     {
+        // #bug : get Request sometimes instead of string
+        $path = is_object($input) ? '' : (string)$input;
+
         // get data
         if($name = Mog::post('name') and $to = Mog::post('to')) {
 
@@ -140,10 +157,13 @@ class Cloud
 
     /**
      * Delete folder or file
-     * @param $path
+     * @param string $input
      */
-    public function delete($path = null)
+    public function delete($input = null)
     {
+        // #bug : get Request sometimes instead of string
+        $path = is_object($input) ? '' : (string)$input;
+
         // get data
         if($name = Mog::post('name')) {
 
@@ -192,10 +212,13 @@ class Cloud
 
     /**
      * Upload file to path
-     * @param $path
+     * @param string $input
      */
-    public function upload($path = null)
+    public function upload($input = null)
     {
+        // #bug : get Request sometimes instead of string
+        $path = is_object($input) ? '' : (string)$input;
+
         // get data
         if($file = Mog::file('file')) {
 
@@ -221,13 +244,48 @@ class Cloud
 
 
     /**
+     * Cron : retrieve files from mailbox
+     */
+    public function import()
+    {
+        $valid = true;
+
+        // use imap
+        if(HC_IMAP) {
+
+            // open server
+            $server = new MailServer(HC_IMAP_HOST, HC_IMAP_USERNAME, HC_IMAP_PASSWORD);
+            $mailbox = $server->in('INBOX');
+
+            // check all mails
+            foreach($mailbox->mails('UNSEEN') as $mail) {
+
+                // download attachments
+                foreach($mail->attachments as $attachment) {
+                    $valid &= $attachment->download(HC_ROOT . HC_IMAP_DIR);
+                }
+
+            }
+
+        }
+
+        return $valid;
+    }
+
+
+    /**
      * Build path
-     * @param null $path
-     * @param null $name
+     * @param string $path
+     * @param string $name
      * @return string
      */
     protected function makePath($path = null, $name = null)
     {
+        // decode
+        if($path) {
+            $path = rawurldecode($path);
+        }
+
         $target = HC_SEP . ltrim(HC_ROOT, HC_SEP);
 
         if($path) { $target .= rtrim($path, HC_SEP) . HC_SEP; }

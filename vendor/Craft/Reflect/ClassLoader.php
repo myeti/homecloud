@@ -9,7 +9,7 @@
  */
 namespace Craft\Reflect;
 
-class ClassLoader
+class ClassLoader implements ClassLoaderInterface
 {
 
     /** @var array */
@@ -17,14 +17,27 @@ class ClassLoader
 
 
     /**
+     * Setup class loader
+     * @param bool $register
+     */
+    public function __construct($register = false)
+    {
+        // register as spl loader
+        if($register) {
+            spl_autoload_register([$this, 'load']);
+        }
+    }
+
+
+    /**
      * Register vendor path
-     * @param string $prefix
+     * @param string $vendor
      * @param string $path
      */
-    public function vendor($prefix, $path)
+    public function add($vendor, $path)
     {
         // clean
-        $prefix = trim($prefix, '\\');
+        $prefix = trim($vendor, '\\');
         $path = str_replace('\\', DIRECTORY_SEPARATOR , $path);
         $path = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
@@ -34,14 +47,22 @@ class ClassLoader
 
 
     /**
-     * Register many vendors path
-     * @param array $vendors
+     * Get vendor path
+     * @param string $vendor
+     * @throws \RuntimeException
+     * @return string
      */
-    public function vendors(array $vendors)
+    public function path($vendor)
     {
-        foreach($vendors as $prefix => $path) {
-            static::vendor($prefix, $path);
+        // clean
+        $vendor = trim($vendor, '\\');
+
+        // error
+        if(!isset($this->vendors[$vendor])) {
+            throw new \RuntimeException('Vendor "' . $vendor . '" does not exists.');
         }
+
+        return $this->vendors[$vendor];
     }
 
 
@@ -57,30 +78,8 @@ class ClassLoader
 
 
     /**
-     * Register many aliases
-     * @param array $aliases
-     */
-    public function aliases(array $aliases)
-    {
-        foreach($aliases as $alias => $class) {
-            static::alias($alias, $class);
-        }
-    }
-
-
-    /**
-     * Auto-register as Autoloader
-     */
-    public function register()
-    {
-        spl_autoload_register([$this, 'load']);
-    }
-
-
-    /**
      * Load a class
      * @param string $class
-     * @throws \RuntimeException
      * @return bool
      */
     public function load($class)
@@ -109,26 +108,6 @@ class ClassLoader
         }
 
         return false;
-    }
-
-
-    /**
-     * Get vendor path
-     * @param string $vendor
-     * @throws \RuntimeException
-     * @return string
-     */
-    public function path($vendor)
-    {
-        // clean
-        $vendor = trim($vendor, '\\');
-
-        // error
-        if(!isset($this->vendors[$vendor])) {
-            throw new \RuntimeException('Vendor "' . $vendor . '" does not exists.');
-        }
-
-        return $this->vendors[$vendor];
     }
 
 }

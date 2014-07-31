@@ -1,3 +1,0 @@
-# Craft\Storage
-
-Coming soon...

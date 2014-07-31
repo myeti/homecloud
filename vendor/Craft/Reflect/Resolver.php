@@ -9,21 +9,34 @@
  */
 namespace Craft\Reflect;
 
-abstract class Resolver
+class Resolver implements ResolverInterface
 {
+
+    /** @var Injector */
+    protected $injector;
+
+
+    /**
+     * Setup resolver
+     * @param Injector $injector
+     */
+    public function __construct(Injector $injector = null)
+    {
+        $this->injector = $injector;
+    }
+
 
     /**
      * Resolve input
      * @param $input
-     * @param Injector $injector
      * @return bool|Action
      */
-    public static function resolve($input, Injector $injector = null)
+    public function resolve($input)
     {
-        return static::resolveFunction($input)
-            ?: static::resolveStaticMethod($input)
-            ?: static::resolveInvokeMethod($input, $injector)
-            ?: static::resolveClassMethod($input, $injector);
+        return $this->resolveFunction($input)
+            ?: $this->resolveStaticMethod($input)
+            ?: $this->resolveInvokeMethod($input)
+            ?: $this->resolveClassMethod($input);
     }
 
 
@@ -32,10 +45,10 @@ abstract class Resolver
      * @param mixed $input
      * @return bool|Action
      */
-    public static function resolveFunction($input)
+    public function resolveFunction($input)
     {
         // check
-        if(!function_exists($input) and !($input instanceof \Closure)) {
+        if(!($input instanceof \Closure) and !function_exists($input)) {
             return false;
         }
 
@@ -56,7 +69,7 @@ abstract class Resolver
      * @param $input
      * @return bool|Action
      */
-    public static function resolveStaticMethod($input)
+    public function resolveStaticMethod($input)
     {
         // parse string
         if(is_string($input) and strpos($input, '::') !== false) {
@@ -94,10 +107,9 @@ abstract class Resolver
     /**
      * Resolve invoke method callable
      * @param mixed $input
-     * @param Injector $injector
      * @return bool|Action
      */
-    public static function resolveInvokeMethod($input, Injector $injector = null)
+    public function resolveInvokeMethod($input)
     {
         // check
         if(!method_exists($input, '__invoke')) {
@@ -112,7 +124,7 @@ abstract class Resolver
             $object = $input;
         }
         else {
-            $object = $injector ? $injector->make($input) : $class->newInstance();
+            $object = $this->injector ? $this->injector->make($input) : $class->newInstance();
         }
 
         // reflect method
@@ -138,10 +150,9 @@ abstract class Resolver
     /**
      * Resolve class method callable
      * @param $input
-     * @param Injector $injector
      * @return bool|Action
      */
-    public static function resolveClassMethod($input, Injector $injector = null)
+    public function resolveClassMethod($input)
     {
         // parse string
         if(is_string($input) and strpos($input, '::') !== false) {
@@ -161,7 +172,7 @@ abstract class Resolver
 
         // reflect class
         $class = new \ReflectionClass($input[0]);
-        $object = $injector ? $injector->make($input[0]) : $class->newInstance();
+        $object = $this->injector ? $this->injector->make($input[0]) : $class->newInstance();
 
         // get metadata
         $metadata = array_merge(
@@ -177,6 +188,19 @@ abstract class Resolver
         $action->type = 'class-method';
 
         return $action;
+    }
+
+
+    /**
+     * Quick resolving
+     * @param $input
+     * @param Injector $injector
+     * @return bool|\Craft\Reflect\Action
+     */
+    public static function forge($input, Injector $injector = null)
+    {
+        $resolver = new self($injector);
+        return $resolver->resolve($input);
     }
 
 } 

@@ -16,7 +16,7 @@ class Action
     public $callable;
 
     /** @var array */
-    public $metadata = [];
+    public $meta = [];
 
     /** @var array */
     public $args = [];
@@ -32,15 +32,16 @@ class Action
      * Init action
      * @param callable $callable
      * @param array $args
-     * @param array $metadata
+     * @param array $meta
      * @param mixed $data
      */
-    public function __construct(callable $callable, array $metadata = [], array $args = [], $data = null)
+    public function __construct(callable $callable, array $meta = [], array $args = [], $data = null)
     {
         $this->callable = $callable;
         $this->args = $args;
-        $this->metadata = $metadata;
+        $this->meta = $meta;
         $this->data = $data;
+        $this->type = 'callable';
     }
 
 

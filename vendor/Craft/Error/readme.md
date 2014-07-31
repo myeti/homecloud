@@ -1,3 +1,0 @@
-# Craft\Error
-
-Coming soon...

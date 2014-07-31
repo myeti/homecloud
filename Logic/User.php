@@ -9,8 +9,8 @@
  */
 namespace My\Logic;
 
-use Craft\Env\Auth;
-use Craft\Env\Flash;
+use Forge\Auth;
+use Forge\Flash;
 
 class User
 {

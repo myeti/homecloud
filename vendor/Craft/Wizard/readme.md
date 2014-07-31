@@ -1,3 +1,0 @@
-# Craft\Wizard
-
-Coming soon...

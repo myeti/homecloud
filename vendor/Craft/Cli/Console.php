@@ -9,87 +9,99 @@
  */
 namespace Craft\Cli;
 
-use Craft\Router\Matcher\UrlMatcher;
-use Craft\Router\RouteProvider;
+use Craft\Cli\Command\Welcome;
 
 class Console
 {
 
-    /** @var In */
-    protected $in;
+    const VERSION = '0.9';
 
-    /** @var Out */
-    protected $out;
 
-	/** @var array */
+	/** @var Command[] */
 	protected $commands = [];
+
+    /** @var Command */
+    protected $welcome;
 
 
     /**
      * Define i&o
-     * @param Out $out
-     * @param In $in
+     * @param $welcome
      */
-    public function __construct(Out $out = null, In $in = null)
+    public function __construct(Command $welcome = null)
     {
-        // define i&o
-        $this->in = $in ?: new In();
-        $this->out = $out ?: new Out();
-
-        // default welcome
-        $this->command('cli.welcome', function(){
-            $this->out->say('Welcome :)')->nl();
-        });
-
-        // default not found
-        $this->command('cli.notfound', function($command){
-            $this->out->say('Command [' . $command . '] not found.')->nl();
-        });
+        $this->welcome = $welcome ?: new Welcome('Welcome command');
     }
 
 
     /**
      * Register command
-     * @param $command
-     * @param \Closure $callback
-     * @internal param string $name
+     * @param $name
+     * @param Command $command
+     * @return $this
      */
-	public function command($command, \Closure $callback)
+	public function add($name, Command $command)
 	{
-		$this->commands[$command] = $callback;
+		$this->commands[$name] = $command;
+        return $this;
 	}
 
 
-	/**
-	 * Let's go !
-	 */
-	public function plug()
+    /**
+     * Let's go !
+     * @param string $args
+     * @return bool
+     */
+	public function run($args = null)
 	{
-		// make command
-		$query = $_SERVER['argv'];
-		array_shift($query);
-        $query = implode(' ', $query);
+		// parse query
+        if(!$args) {
+            $args = $_SERVER['argv'];
+            array_shift($args);
+        }
+        else {
+            $args = explode(' ', $args);
+        }
+
+        // get command name
+        $name = array_shift($args);
 
         // welcome
-        if(empty($query)) {
-            call_user_func($this->commands['cli.welcome'], $query);
-            exit;
+        if(!$name or $name[0] == '-') {
+
+            if($name) {
+                array_unshift($args, $name);
+            }
+
+            return $this->welcome->run($args);
         }
 
-        // setup router
-        $matcher = new UrlMatcher(new RouteProvider($this->commands));
+        // command not found
+        if(!isset($this->commands[$name])) {
+            return $this->out('Unknown command "' . $name . '".');
+        }
 
-        // look up command
-        $route = $matcher->find($query);
+        // execute command
+        $error = $this->commands[$name]->run($args);
 
         // error
-        if(!$route) {
-            call_user_func($this->commands['cli.notfound'], $query);
-            exit;
+        if($error) {
+            return $this->out($error);
         }
 
-        // execute
-        return call_user_func_array($route->target, $route->data);
+        return true;
 	}
+
+
+    /**
+     * Output message
+     * @param $message
+     * @return bool
+     */
+    protected function out($message)
+    {
+        Dialog::say($message);
+        return false;
+    }
 
 }

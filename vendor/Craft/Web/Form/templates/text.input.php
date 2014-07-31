@@ -1,0 +1,1 @@
+<textarea name="<?= $field->name ?>" placeholder="<?= $field->placeholder ?>" id="<?= $field->id ?>"><?= $field->value ?></textarea>

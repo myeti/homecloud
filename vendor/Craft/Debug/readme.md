@@ -1,3 +1,0 @@
-# Craft\Debug
-
-Coming soon...
