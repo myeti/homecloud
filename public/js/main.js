@@ -31,8 +31,9 @@ $(document).ready(function(){
     // dropzone
     Dropzone.options.uploadZone = {
         init: function() {
-            this.on("complete", function() { document.location.reload(true); });
-            this.on("completemultiple", function() { document.location.reload(true); });
+            this.on('queuecomplete', function() {
+                document.location.reload(true);
+            });
         }
     };
 
