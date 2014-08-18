@@ -159,7 +159,7 @@
         <tbody>
             <?php foreach($items as $item): /** @var $item \SplFileinfo */ ?>
             <tr>
-                <td>
+                <td class="col-name">
                     <?php if($item->isDir()): ?>
                     <span class="glyphicon glyphicon-folder-open folder"></span>
                     <a href="<?= url(':' . str_replace(HC_ROOT, null, $item->getPathname())) ?>"><?= $item->getFilename() ?></a>
@@ -168,10 +168,10 @@
                     <a href="<?= self::asset(HC_DIR . str_replace(HC_ROOT, null, $item->getPathname())) ?>" target="_blank"><?= $item->getFilename() ?></a>
                     <?php endif; ?>
                 </td>
-                <td><?= number_format($item->getSize() / 1024, 2) ?> ko</td>
-                <td><?= $item->isDir() ? 'folder' : mime_content_type($item->getPathname()) ?></td>
-                <td><?= date('d M Y H:i', $item->getMTime()) ?></td>
-                <td>
+                <td class="col-size"><?= number_format($item->getSize() / 1024, 2) ?> ko</td>
+                <td class="col-type"><?= $item->isDir() ? 'folder' : mime_content_type($item->getPathname()) ?></td>
+                <td class="col-date"><?= date('d M Y H:i', $item->getMTime()) ?></td>
+                <td class="col-actions">
                     <div class="btn-group">
                         <a data-toggle="dropdown" href="#">
                             <span class="glyphicon glyphicon-cog"></span>

@@ -77,12 +77,24 @@ class Cloud
 
         }
 
+        // alphabetical sort
         ksort($items);
+
+        // sort dir first, files after
+        $dirs = $files = [];
+        foreach($items as $item) {
+            if($item->isDir()) {
+                $dirs[] = $item;
+            }
+            else {
+                $files[] = $item;
+            }
+        }
 
         return [
             'path'  => $path,
             'bread' => $bread,
-            'items' => $items,
+            'items' => array_merge($dirs, $files),
             'query' => $query
         ];
     }

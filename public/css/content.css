@@ -93,6 +93,13 @@ footer {
     color: inherit;
 }
 
+#dir-list .col-type {
+    max-width: 140px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 #dir-list .dropdown-menu a .glyphicon {
     vertical-align: middle;
     margin-bottom: 4px;
